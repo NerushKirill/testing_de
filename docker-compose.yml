@@ -1,0 +1,25 @@
+version: "3"
+
+services:
+  db:
+    container_name: "de_projects"
+    image: postgres:13
+    restart: always
+    environment:
+      - POSTGRES_DB=de_projects
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_PORT=5432
+    ports:
+      - "5432:5432"
+    volumes:
+      - de_project:/var/lib/postgresql/data
+    networks:
+      - DEProjects
+
+volumes:
+  de_project:
+
+networks:
+  DEProjects:
+    driver: bridge
