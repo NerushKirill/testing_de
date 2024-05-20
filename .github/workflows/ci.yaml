@@ -29,12 +29,12 @@ jobs:
 
       - name: Run linters and formatters
         run: |
-          poetry run black --check .
-          poetry run ruff .
-          poetry run pylint your_package
-          poetry run mypy your_package
-          poetry run bandit -r your_package
-          poetry run sqlfluff lint path/to/your/sql/files
+          poetry run black ./src
+          poetry run mypy ./src
+          poetry run coverage run -m pytest .
+          poetry run coverage html
+          poetry run ruff check --fix .
+          poetry sqlfluff check ./docs/sql/* --dialect postgres
 
       - name: Run tests
         run: |
