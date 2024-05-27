@@ -11,20 +11,20 @@ def get_user_url(num_user, url) -> dict:
                 return data
             else:
                 return {""}
-    except requests.exceptions.MissingSchema:
-        print("Ошибка: отсутствует схема в URL.")
+    except requests.exceptions.MissingSchema as me:
+        print(f"Ошибка: отсутствует схема в URL. {me}")
         return {}
-    except requests.exceptions.InvalidURL:
-        print("Ошибка: некорректный URL.")
+    except requests.exceptions.InvalidURL as ie:
+        print(f"Ошибка: некорректный URL. {ie}")
         return {}
-    except requests.exceptions.ConnectionError:
-        print("Ошибка: ошибка соединения.")
+    except requests.exceptions.ConnectionError as ce:
+        print(f"Ошибка: ошибка соединения. {ce}")
         return {}
-    except requests.exceptions.Timeout:
-        print("Ошибка: превышен лимит времени ожидания.")
+    except requests.exceptions.Timeout as te:
+        print(f"Ошибка: превышен лимит времени ожидания. {te}")
         return {}
     except requests.exceptions.RequestException as e:
-        print(f"Неизвестная ошибка: {e}")
+        print(f"Ошибка: ошибка запроса. {e}")
         return {}
 
 
@@ -36,4 +36,3 @@ def parsing_json_file(data):
         dict_data[key] = value
     return dict_data
 
-    # return email[0], password[0]

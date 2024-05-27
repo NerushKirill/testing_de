@@ -1,7 +1,9 @@
 from datetime import datetime
+from pathlib import Path
 import psycopg2
 from psycopg2 import OperationalError, ProgrammingError, DatabaseError
 from src.resources import constants
+from src.validators.validator_email import validator_email
 from src.validators.validator_password import validator_password
 
 
@@ -13,6 +15,8 @@ def connect_db(query):
             password=constants.PASSWORD,
             database=constants.DB
         )
+    except UnboundLocalError as ue:
+        print(f"Ошибка connection: {ue}")
     except OperationalError as oe:
         print(f"Ошибка подключения к базе данных: {oe}")
 
@@ -26,10 +30,10 @@ def connect_db(query):
             else:
                 return False
     except psycopg2.errors.UniqueViolation as e:
-        print("Ошибка уникального ограниченияe:", e.diag.message_detail, "Данные не будут добавлены")
+        print(f"Ошибка уникального ограниченияe: {e} Данные не будут добавлены")
 
     except ProgrammingError as pe:
-        if str(pe) != 'ОШИБКА:  отношение "contact_details" уже существует\n':
+        if str(pe) != 'Ошибка:  отношение "contact_details" уже существует\n':
             print(f"Ошибка в SQL запросе: {pe}")
     except DatabaseError as de:
         print(f"Ошибка базы данных: {de}")
@@ -43,9 +47,14 @@ def create_db():
     WHERE schemaname NOT IN ('pg_catalog', 'information_schema'); """
 
     count_table = connect_db(query)
+
     if count_table[0][0] == 0:
+        current_file_path = Path(__file__).resolve()
+        project_root = current_file_path.parents[2]
+        sql_path = project_root / 'docs' / 'sql' / 'DDL.sql'
+        print(sql_path)
         try:
-            with open('C:\\Users\\yur-f\\Desktop\\project\\testing_de\\docs\\sql\\DDL.sql', 'r') as file:
+            with open(sql_path, 'r') as file:
                 sql_script = file.read()
             connect_db(sql_script)
         except FileNotFoundError as fe:
@@ -53,6 +62,11 @@ def create_db():
 
 
 def save_user(data_dict):
+    if validator_email(data_dict['email']):
+        print("email валиден")
+    else:
+        print("email не валиден")
+
     query = """
             INSERT INTO cities(city, state, country, created_dttm, updated_dttm)
             VALUES ('{}', '{}', '{}','{}','{}')
@@ -142,38 +156,37 @@ def get_chek_email(email: str):
     query = """SELECT * FROM REGISTRATION_DATA WHERE EMAIL = '{}'""".format(email)
     return connect_db(query)
 
-#!1
+
 def update_param_table_locations_db(email, name_param, value):
     query = """UPDATE locations SET {} = '{}' WHERE
             user_id = (SELECT user_id FROM registration_data WHERE email = '{}')""".format(name_param, value, email)
     connect_db(query)
 
-#!!
+
 def update_param_table_cities_db(email, name_param, value):
     query = """UPDATE cities SET {} = '{}' WHERE city_id = (SELECT city_id FROM locations WHERE user_id = (SELECT 
             user_id FROM registration_data WHERE email = '{}') )""".format(name_param, value, email)
     connect_db(query)
 
 
-#11
 def update_param_table_registration_data_db(email, name_param, value):
     query = """UPDATE registration_data SET {} = '{}' 
             WHERE email = '{}'""".format(name_param, value, email)
     connect_db(query)
 
-#11
+
 def update_param_table_media_data_db(email, name_param, value):
     query = """UPDATE media_data SET {} = '{}'
     WHERE user_id =  (SELECT user_id FROM registration_data WHERE email = '{}') """.format(name_param, value, email)
     connect_db(query)
 
-#!!
+
 def update_param_table_contact_details_db(email, name_param, value):
     query = """UPDATE contact_details SET {} = '{}' WHERE user_id = ( SELECT user_id FROM registration_data 
     WHERE email = '{}')  """.format(name_param, value, email)
     connect_db(query)
 
-#!!
+
 def update_param_table_users_db(email, name_param, value):
     query = """UPDATE users SET {} = '{}' WHERE user_id = ( SELECT user_id FROM registration_data 
     WHERE email = '{}')""".format(
